@@ -1,0 +1,12 @@
+streamlit
+torch
+torchvision
+timm
+faiss-cpu
+pandas
+Pillow
+requests
+tqdm
+numpy
+fastapi
+uvicorn
