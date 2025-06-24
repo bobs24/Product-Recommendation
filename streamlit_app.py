@@ -14,10 +14,10 @@ st.set_page_config(page_title="🛍️ Product Recommender", layout="wide")
 
 @st.cache_resource
 def load_resources():
-    embeddings = np.load("data/embeddings.npy")
-    with open("data/image_urls.pkl", "rb") as f:
+    embeddings = np.load("ConvNextTiny/embeddings.npy")
+    with open("ConvNextTiny/image_urls.pkl", "rb") as f:
         image_urls = pickle.load(f)
-    product_data = pd.read_csv("data/product_data.csv")
+    product_data = pd.read_excel("ConvNextTiny/product_data.xlsx")
     fe = FeatureExtractor()
     index = FaissIndex(dim=embeddings.shape[1])
     index.build(embeddings, image_urls)
@@ -40,21 +40,21 @@ if uploaded_file:
         input_image_url = results[0][0]
 
         # Get GROUP_ID of uploaded image
-        input_group_id_series = product_data.loc[product_data['IMAGE'] == input_image_url, 'GROUP_ID']
+        input_group_id_series = product_data.loc[product_data['IMAGE_URL'] == input_image_url, 'GROUP_ID']
         input_group_id = input_group_id_series.values[0] if not input_group_id_series.empty else None
 
         # Get PRODUCT_NAME of uploaded image
-        input_product_name_series = product_data.loc[product_data['IMAGE'] == input_image_url, 'PRODUCT_NAME']
+        input_product_name_series = product_data.loc[product_data['IMAGE_URL'] == input_image_url, 'PRODUCT_NAME']
         input_product_name = input_product_name_series.values[0] if not input_product_name_series.empty else None
 
         # st.markdown(f"**GROUP_ID of uploaded image:** `{input_group_id}`")
 
         filtered_results = []
         for url, sim in results:
-            group_id_series = product_data.loc[product_data['IMAGE'] == url, 'GROUP_ID']
+            group_id_series = product_data.loc[product_data['IMAGE_URL'] == url, 'GROUP_ID']
             group_id = group_id_series.values[0] if not group_id_series.empty else None
 
-            product_series = product_data.loc[product_data['IMAGE'] == url, 'PRODUCT_NAME']
+            product_series = product_data.loc[product_data['IMAGE_URL'] == url, 'PRODUCT_NAME']
             product_name = product_series.values[0] if not product_series.empty else None
 
             # Rule: if GROUP_ID is None or 0, exclude same product name
@@ -68,7 +68,7 @@ if uploaded_file:
         seen_products = set()
         deduped_results = []
         for url, sim in filtered_results:
-            product_series = product_data.loc[product_data['IMAGE'] == url, 'PRODUCT_NAME']
+            product_series = product_data.loc[product_data['IMAGE_URL'] == url, 'PRODUCT_NAME']
             product_name = product_series.values[0] if not product_series.empty else None
             if product_name and product_name not in seen_products:
                 seen_products.add(product_name)
@@ -78,8 +78,8 @@ if uploaded_file:
 
         cards_html = ""
         for url, sim in top_results:
-            brand = product_data.loc[product_data['IMAGE'] == url, 'BRAND_NAME'].values
-            product = product_data.loc[product_data['IMAGE'] == url, 'PRODUCT_NAME'].values
+            brand = product_data.loc[product_data['IMAGE_URL'] == url, 'BRAND_NAME'].values
+            product = product_data.loc[product_data['IMAGE_URL'] == url, 'PRODUCT_NAME'].values
             brand_name = brand[0] if len(brand) > 0 else "Unknown Brand"
             product_name = product[0] if len(product) > 0 else "Unknown Product"
             cards_html += f"""
